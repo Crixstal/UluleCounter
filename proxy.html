@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ulule Counter</title>
+    <style>
+	    @font-face {
+            font-family: 'Avenir';
+            src: url('fonts/Avenir.ttc') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+        body {
+            font-family: 'Avenir Black', sans-serif;
+            color: #333;
+            text-align: center;
+            background-image: url('Images/LOTR.png');
+			background-color: rgba(0, 0, 0, 0);
+            background-size: contain;
+            background-position: center;
+			background-repeat: no-repeat;
+            padding: 50px;
+        }		
+        #amount {
+            font-size: 26px;
+            font-weight: bold;
+            color: #000000;
+            margin-top: 70px;
+            margin-left: 110px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="amount">
+    <span id="amount-value">0</span>
+</div>
+
+<script>
+const apiKey = 'API KEY';
+const projectSlug = 'PUBLIC PROJECT SLUG';
+const ululeAPI = `http://localhost:8080/https://api.ulule.com/v1/projects/${projectSlug}`;
+
+
+async function fetchProjectAmount()
+{
+    try 
+	{
+        const response = await fetch(ululeAPI, 
+		{
+            headers: 
+			{
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+		console.log('En-têtes de la requête:', 
+		{
+			'Authorization': `Bearer ${apiKey}`,
+			'Content-Type': 'application/json'
+		});
+
+		console.log('Fetching data from:', ululeAPI);
+		
+        console.log('Réponse de l\'API:', response);
+		
+        if (!response.ok) 
+		{
+            const errorText = await response.text();
+            throw new Error(`Erreur lors de la requête : ${response.status} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('Données récupérées:', data);
+
+        // Récupération du montant récolté
+        let amountCollected = data.amount_raised.toLocaleString('fr-FR');
+		amountCollected = amountCollected.replace(/\s/g, '\u2009');
+
+        document.getElementById('amount-value').innerText = `${amountCollected} €`;
+
+    } 
+	catch (error) 
+	{
+        console.error('Erreur:', error);
+        document.getElementById('amount-value').innerText = `Erreur lors de la récupération des données : ${error.message}`;
+    }
+}
+
+
+function startAutoRefresh(interval) 
+{
+    fetchProjectAmount();
+    setInterval(fetchProjectAmount, interval);
+}
+
+
+const refreshInterval = 3000; // 3000 milliseconds = 3 seconds
+startAutoRefresh(refreshInterval);
+</script>
+
+</body>
+</html>
